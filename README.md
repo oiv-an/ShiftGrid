@@ -31,22 +31,29 @@ gesture.
 
 ## Install
 
-1. Download `ShiftGrid-0.1.0-macOS-universal.zip` from
-   [GitHub Releases](https://github.com/oiv-an/ShiftGrid/releases), not the
-   automatically generated source archive.
-2. Unzip it and move `ShiftGrid.app` to `/Applications` before granting
-   Accessibility permission.
-3. Open ShiftGrid. Its three-column icon appears in the menu bar.
-4. In the ShiftGrid menu, open **Settings…**, then enable ShiftGrid in
+1. Open the [latest GitHub Release](https://github.com/oiv-an/ShiftGrid/releases/latest)
+   and download the DMG marked as the recommended macOS installer. Do not use
+   the automatically generated `Source code` archives.
+2. Open the DMG and drag `ShiftGrid.app` onto the **Applications** shortcut in
+   the installer window.
+3. Wait for the copy to finish, eject the ShiftGrid disk image, and launch
+   ShiftGrid from the Applications folder. Its three-column icon appears in
+   the menu bar.
+4. If macOS blocks the first launch, open **System Settings → Privacy &
+   Security**, find the ShiftGrid message and click **Open Anyway**. Then
+   launch ShiftGrid again from Applications.
+5. In the ShiftGrid menu, open **Settings…**, then enable ShiftGrid in
    **System Settings → Privacy & Security → Accessibility**.
 
-### Gatekeeper notice for v0.1.0
+If the DMG cannot be opened, download the ZIP from the same release page,
+unzip it, and move `ShiftGrid.app` to Applications before launching it.
 
-The first public build is ad-hoc signed and is not Apple-notarized because a
-Developer ID certificate is not configured yet. If macOS blocks the first
-launch, open **System Settings → Privacy & Security**, find the ShiftGrid
-message and click **Open Anyway**. Future ad-hoc-signed updates may require
-Accessibility permission to be enabled again.
+### Gatekeeper notice
+
+Current builds are ad-hoc signed and are not Apple-notarized because a
+Developer ID certificate is not configured yet. The DMG makes installation
+more convenient but does not remove the first-launch warning. Ad-hoc-signed
+updates may also require Accessibility permission to be enabled again.
 
 The SHA-256 checksum is published as `SHA256SUMS.txt` beside every release.
 
@@ -78,10 +85,14 @@ default and uses an ad-hoc signature when no identity is configured. To keep a
 stable local signature between builds, put the identity name or SHA-1 hash in
 the ignored `.local-signing-identity` file, or set `CODE_SIGN_IDENTITY`.
 
-To create the same archive and checksum used by GitHub Releases:
+To create the same DMG, fallback ZIP and checksums used by GitHub Releases,
+install the pinned packaging tools with Python 3.10 or later:
 
 ```sh
-CODE_SIGN_IDENTITY=- ./Scripts/package-release.sh
+python3 -m venv .build/release-venv
+.build/release-venv/bin/python -m pip install --requirement Scripts/requirements-release.txt
+DMGBUILD_EXECUTABLE=.build/release-venv/bin/dmgbuild \
+    CODE_SIGN_IDENTITY=- ./Scripts/package-release.sh
 ```
 
 For a notarized distribution, use a Developer ID Application identity,
@@ -94,7 +105,7 @@ See [PRIVACY.md](PRIVACY.md) for the exact permissions and local data use.
 - Full-screen windows and some system windows cannot be resized through the
   Accessibility API.
 - Apps with fixed or large minimum window sizes may adjust the requested frame.
-- Version 0.1.0 has no launch-at-login option, auto-updater or localization;
+- ShiftGrid has no launch-at-login option, auto-updater or localization yet;
   the interface is currently Russian.
 
 ---
@@ -120,21 +131,28 @@ ShiftGrid — нативное приложение для macOS, которое
 
 ### Установка
 
-1. Скачайте `ShiftGrid-0.1.0-macOS-universal.zip` в разделе
-   [Releases](https://github.com/oiv-an/ShiftGrid/releases). Архивы
-   `Source code` не содержат готового приложения.
-2. Распакуйте архив и перенесите `ShiftGrid.app` в `/Applications` до выдачи
-   разрешения.
-3. Запустите ShiftGrid. В верхней строке меню появится иконка с тремя колонками.
-4. Откройте **Настройки…** и включите ShiftGrid в разделе
+1. Откройте [страницу последнего релиза](https://github.com/oiv-an/ShiftGrid/releases/latest)
+   и скачайте DMG, отмеченный как рекомендуемый установщик для macOS.
+   Архивы `Source code` не содержат готового приложения.
+2. Откройте DMG и перетащите `ShiftGrid.app` на ярлык **Applications**
+   в окне установщика.
+3. Дождитесь копирования, извлеките диск ShiftGrid и запустите
+   ShiftGrid из папки «Программы». В верхней строке меню появится иконка
+   с тремя колонками.
+4. Если macOS заблокирует первый запуск, откройте **Системные настройки →
+   Конфиденциальность и безопасность**, найдите сообщение о ShiftGrid и
+   нажмите **Всё равно открыть**. После этого ещё раз запустите ShiftGrid из
+   папки «Программы».
+5. Откройте **Настройки…** и включите ShiftGrid в разделе
    **Системные настройки → Конфиденциальность и безопасность → Универсальный
    доступ**.
 
-Первая публичная версия подписана ad-hoc и пока не нотарифицирована Apple. Если
-macOS заблокирует первый запуск, откройте **Системные настройки →
-Конфиденциальность и безопасность**, найдите сообщение о ShiftGrid и нажмите
-**Открыть всё равно**. После обновления macOS может попросить включить
-«Универсальный доступ» повторно.
+Если DMG не открывается, скачайте ZIP с той же страницы релиза,
+распакуйте его и перенесите `ShiftGrid.app` в папку «Программы» до запуска.
+
+Текущие сборки подписаны ad-hoc и пока не нотарифицированы Apple. DMG
+упрощает установку, но не убирает предупреждение при первом запуске. После
+обновления macOS также может попросить включить «Универсальный доступ» повторно.
 
 ### Использование
 

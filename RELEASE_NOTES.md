@@ -1,7 +1,32 @@
-# ShiftGrid 0.1.0 — first public release
+# ShiftGrid 0.1.1
 
 ShiftGrid is a native macOS menu-bar utility for moving the window under the
 pointer into one or two vertical screen zones.
+
+## Download
+
+- **Recommended:** `ShiftGrid-0.1.1-macOS-universal.dmg`
+- **Alternative:** `ShiftGrid-0.1.1-macOS-universal.zip`
+- `SHA256SUMS.txt` contains the SHA-256 checksums for both downloads.
+
+Do not download the automatically generated `Source code` archives: they do
+not contain the ready-to-run application.
+
+## Install from the DMG
+
+1. Open the downloaded DMG.
+2. Drag `ShiftGrid.app` onto the **Applications** shortcut in the installer
+   window.
+3. Wait for the copy to finish, eject the ShiftGrid disk image, and launch
+   ShiftGrid from the Applications folder.
+4. If macOS blocks the first launch, open **System Settings → Privacy &
+   Security**, find the ShiftGrid message and click **Open Anyway**. Launch the
+   app again.
+5. Open ShiftGrid from its three-column menu-bar icon and enable it in **System
+   Settings → Privacy & Security → Accessibility**.
+
+If the DMG cannot be opened, download the ZIP instead, unzip it, and move
+`ShiftGrid.app` to the Applications folder before launching it.
 
 ## Included
 
@@ -13,16 +38,13 @@ pointer into one or two vertical screen zones.
 - Correct handling of the menu bar, visible and auto-hidden Dock, and multiple
   displays.
 - Universal 2 support for Apple Silicon and Intel Macs.
+- A convenient drag-and-drop DMG, with the ZIP retained as a fallback.
 - Local-only operation with no analytics or network requests.
 
-## Installation
-
-Download `ShiftGrid-0.1.0-macOS-universal.zip`, unzip it and move
-`ShiftGrid.app` to `/Applications` before granting Accessibility permission.
-
-This first public build is ad-hoc signed and not Apple-notarized. If macOS
-blocks the first launch, use **System Settings → Privacy & Security → Open
-Anyway**. Then enable ShiftGrid in **Accessibility**.
+This build is ad-hoc signed and is not Apple-notarized because a Developer ID
+certificate is not configured yet. The DMG makes copying the app easier, but
+does not remove the Gatekeeper warning described above. An update may also
+require Accessibility permission to be enabled again.
 
 ## Known limitations
 

@@ -2,6 +2,19 @@
 
 All notable changes to ShiftGrid are documented here.
 
+## [0.1.1] - 2026-09-04
+
+### Added
+
+- A drag-and-drop DMG with `ShiftGrid.app` and an Applications shortcut.
+- SHA-256 checksums for both the recommended DMG and the fallback ZIP archive.
+
+### Changed
+
+- Release automation now builds and verifies both distribution formats before
+  publishing them together.
+- Publishing refuses to replace the assets of an existing GitHub Release.
+
 ## [0.1.0] - 2026-09-04
 
 ### Added

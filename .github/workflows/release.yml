@@ -6,24 +6,55 @@ on:
       - 'v*'
 
 permissions:
-  contents: write
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
-  release:
+  build:
     runs-on: macos-15
+    timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
+          persist-credentials: false
 
       - name: Verify tag and version
         shell: zsh {0}
         run: |
           version="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' Resources/Info.plist)"
+          build_number="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' Resources/Info.plist)"
+          if [[ ! "${GITHUB_REF_NAME}" =~ '^v[0-9]+\.[0-9]+\.[0-9]+$' ]]; then
+            print -u2 "Tag ${GITHUB_REF_NAME} is not a semantic release tag"
+            exit 1
+          fi
           if [[ "${GITHUB_REF_NAME}" != "v${version}" ]]; then
             print -u2 "Tag ${GITHUB_REF_NAME} does not match Info.plist version ${version}"
             exit 1
           fi
+          if [[ ! "${build_number}" =~ '^[1-9][0-9]*$' ]]; then
+            print -u2 "Invalid Info.plist build number: ${build_number}"
+            exit 1
+          fi
+          if [[ "$(git cat-file -t "${GITHUB_REF_NAME}")" != "tag" ]]; then
+            print -u2 "Release tag ${GITHUB_REF_NAME} must be annotated"
+            exit 1
+          fi
+          tagged_commit="$(git rev-list -n 1 "${GITHUB_REF_NAME}")"
+          if [[ "${tagged_commit}" != "${GITHUB_SHA}" || "${tagged_commit}" != "$(git rev-parse HEAD)" ]]; then
+            print -u2 "Release tag, workflow SHA and checked-out commit do not match"
+            exit 1
+          fi
+
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.12.10'
+
+      - name: Install release packaging dependencies
+        run: python -m pip install --requirement Scripts/requirements-release.txt
 
       - name: Run tests
         run: swift test
@@ -33,21 +64,64 @@ jobs:
           CODE_SIGN_IDENTITY: '-'
         run: ./Scripts/package-release.sh
 
+      - name: Preserve verified release assets
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: release-assets-${{ github.sha }}
+          path: |
+            dist/ShiftGrid-*.dmg
+            dist/ShiftGrid-*.zip
+            dist/SHA256SUMS.txt
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 1
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Restore verified release assets
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: release-assets-${{ github.sha }}
+          path: dist
+
       - name: Publish GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
-        shell: zsh {0}
+        shell: bash
         run: |
+          set -euo pipefail
+          version="${GITHUB_REF_NAME#v}"
+          dmg_path="dist/ShiftGrid-${version}-macOS-universal.dmg"
+          zip_path="dist/ShiftGrid-${version}-macOS-universal.zip"
+          checksum_path="dist/SHA256SUMS.txt"
+
+          for release_asset in "${dmg_path}" "${zip_path}" "${checksum_path}"; do
+            if [[ ! -f "${release_asset}" ]]; then
+              echo "Missing release asset: ${release_asset}" >&2
+              exit 1
+            fi
+          done
+          (cd dist && sha256sum --check SHA256SUMS.txt)
+
           if gh release view "${GITHUB_REF_NAME}" >/dev/null 2>&1; then
-            gh release upload "${GITHUB_REF_NAME}" \
-              dist/ShiftGrid-*-macOS-universal.zip \
-              dist/SHA256SUMS.txt \
-              --clobber
-          else
-            gh release create "${GITHUB_REF_NAME}" \
-              dist/ShiftGrid-*-macOS-universal.zip \
-              dist/SHA256SUMS.txt \
-              --verify-tag \
-              --title "ShiftGrid ${GITHUB_REF_NAME}" \
-              --notes-file RELEASE_NOTES.md
+            echo "Release ${GITHUB_REF_NAME} already exists; refusing to replace it" >&2
+            exit 1
           fi
+
+          gh release create "${GITHUB_REF_NAME}" \
+            "${dmg_path}#Recommended macOS installer (DMG)" \
+            "${zip_path}#ZIP fallback" \
+            "${checksum_path}#SHA-256 checksums" \
+            --verify-tag \
+            --latest \
+            --title "ShiftGrid ${GITHUB_REF_NAME}" \
+            --notes-file RELEASE_NOTES.md
