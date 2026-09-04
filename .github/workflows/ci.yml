@@ -1,0 +1,26 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run tests
+        run: swift test
+      - name: Build Universal 2 app
+        env:
+          CODE_SIGN_IDENTITY: '-'
+        run: ./Scripts/build-app.sh
+      - name: Verify app
+        shell: zsh {0}
+        run: |
+          plutil -lint dist/ShiftGrid.app/Contents/Info.plist
+          codesign --verify --deep --strict --verbose=2 dist/ShiftGrid.app
+          architectures="$(lipo -archs dist/ShiftGrid.app/Contents/MacOS/ShiftGrid)"
+          [[ " ${architectures} " == *" arm64 "* ]]
+          [[ " ${architectures} " == *" x86_64 "* ]]

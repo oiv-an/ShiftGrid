@@ -1,0 +1,10 @@
+.build/
+.review-build/
+.swiftpm/
+DerivedData/
+dist/
+.DS_Store
+*.xcuserstate
+.local-signing-identity
+AGENTS.md
+sources/
